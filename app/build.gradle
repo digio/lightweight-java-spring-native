@@ -1,0 +1,61 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '2.6.3'
+	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+	id 'org.springframework.experimental.aot' version '0.11.3'
+	id 'org.graalvm.buildtools.native' version '0.9.11'
+	id 'distribution'
+	id 'com.google.cloud.tools.jib' version '3.2.0'
+}
+
+group = 'au.com.digio'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+
+allprojects {
+	repositories {
+		maven { url 'https://repo.spring.io/release' }
+		mavenCentral()
+	}
+	group = rootProject.group
+	version = rootProject.version
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.cloud:spring-cloud-starter-function-web:3.2.2'
+	implementation 'org.springframework.cloud:spring-cloud-function-adapter-aws:3.2.2'
+	implementation 'com.amazonaws:aws-lambda-java-core:1.2.1'
+	implementation 'com.amazonaws:aws-lambda-java-events:3.11.0'
+
+	compileOnly 'org.projectlombok:lombok:1.18.22'
+	annotationProcessor 'org.projectlombok:lombok:1.18.22'
+
+	testCompileOnly 'org.projectlombok:lombok:1.18.22'
+	testAnnotationProcessor 'org.projectlombok:lombok:1.18.22'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.cloud:spring-cloud-function-dependencies:3.2.2"
+	}
+}
+
+jar {
+	manifest {
+		attributes(
+				'Main-Class': 'au.com.digio.lightweightjava.springnative.LightweightJavaSpringNativeApplication'
+		)
+	}
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
+
+tasks.named('bootBuildImage') {
+	builder = 'paketobuildpacks/builder:tiny'
+	environment = ['BP_NATIVE_IMAGE': 'true']
+}
